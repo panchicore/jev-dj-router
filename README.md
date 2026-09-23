@@ -192,3 +192,7 @@ Gotcha: `choice.criteria` is an object `{option: description}`, while `score.cri
 - [ ] Take energy for concrete tracks from the catalog, not from the request text.
 - [ ] Build the downstream LLM step: one prompt per route, and skip the LLM entirely for `control`.
 - [ ] Repeat this experiment with [Laya](https://dev.to/jamilxt/jev-vs-laya-the-same-ai-idea-one-closed-and-one-open), the open-source model that does the same job as Jev but runs locally (no API fees). Run the same 25-case golden set and compare routes, confidence calibration, thresholds, latency and cost.
+  - Laya: 421M-param encoder (ModernBERT-large; 322M multilingual variant), Apache 2.0, weights on Hugging Face. ~1 s/request on Apple Silicon, runs offline.
+  - Likely setup (per [jevals](https://github.com/openlayer-ai/jevals)): `pip install "jevals[laya]"` + `JEVALS_BACKEND=laya`. Install in an isolated `uv` env.
+  - Open questions: does it expose an HTTP `/systemone`-like endpoint, or is it library-only? (if library-only, write a small adapter in `call()`). Is the response shape identical (`noul`, `confidence`, `probabilities`)? How well does it handle the Spanish requests (try the multilingual variant)?
+  - Alternative: Kev (`python -m kev.serve --run jaredpalmer/kev-4b`, needs a 32 GB Mac, ~6 s/request). Too slow for a pre-classifier.
