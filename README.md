@@ -191,3 +191,4 @@ Gotcha: `choice.criteria` is an object `{option: description}`, while `score.cri
 - [ ] Add `resolve: catalog`: before asking the user, look the request up in a music catalog. This would settle "metallica one" (artist vs track), "pies descalzos" (album vs song) and "rescate - nada" (unknown artist).
 - [ ] Take energy for concrete tracks from the catalog, not from the request text.
 - [ ] Build the downstream LLM step: one prompt per route, and skip the LLM entirely for `control`.
+- [ ] Repeat this experiment with [Laya](https://dev.to/jamilxt/jev-vs-laya-the-same-ai-idea-one-closed-and-one-open), the open-source model that does the same job as Jev but runs locally (no API fees). Run the same 25-case golden set and compare routes, confidence calibration, thresholds, latency and cost.
