@@ -73,6 +73,10 @@ REQUESTS = [
 MODIFIERS = ("is_lyrics", "has_exclusion", "wants_version", "is_queue", "relative_ref")
 
 
+RETRIES = 0  # retried HTTP calls (overload, rate limit)
+LAST_ATTEMPT_MS = 0.0
+
+
 def payload(state: str) -> dict:
     return {"model": "typesafe-ai/jev", "state": state, "questions": QUESTIONS}
 
@@ -82,14 +86,20 @@ def call(state: str) -> dict:
     req = urllib.request.Request(
         URL, body, {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"}
     )
-    for attempt in range(4):
+    global RETRIES, LAST_ATTEMPT_MS
+    for attempt in range(6):
         try:
+            t0 = time.perf_counter()
             with urllib.request.urlopen(req) as r:
-                return json.load(r)
+                res = json.load(r)
+            LAST_ATTEMPT_MS = (time.perf_counter() - t0) * 1000  # excludes retry backoff
+            return res
         except urllib.error.HTTPError as e:
-            if e.code not in (429, 500, 502, 503) or attempt == 3:
+            # 529 = TypeSafe "system_overloaded"
+            if e.code not in (429, 500, 502, 503, 529) or attempt == 5:
                 print(f"Jev {e.code}: {e.read().decode()[:300]}", file=sys.stderr)
                 raise
+            RETRIES += 1
             time.sleep(0.5 * 2**attempt)
 
 

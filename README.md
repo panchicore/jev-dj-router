@@ -12,6 +12,8 @@ Jev is TypeSafe AI's "System One" evaluation model (`typesafe-ai/jev`), availabl
 
 ![verbose output](docs/verbose-output.svg)
 
+> **Benchmark:** Jev vs the open-source, local [Laya](https://huggingface.co/convaiinnovations/laya) on the same 25 labeled requests → [BENCHMARK.md](BENCHMARK.md). Jev: 25/25 routes. Laya: 12/25, but faster, free and offline.
+
 ## How it works
 
 Jev acts as a cheap, fast pre-classifier. The LLM only runs when it is actually needed, and it receives a hint that tells it what kind of request it is dealing with.
@@ -79,6 +81,8 @@ All questions are evaluated in parallel within one request.
 | File | What |
 |---|---|
 | `dj_router.py` | Questions, hint builder, compact and verbose (`-v`) output, 25 test requests |
+| `bench.py` | Jev vs Laya benchmark on the labeled golden set → `results/<date>.json` |
+| `BENCHMARK.md` / `results/` | Benchmark write-up and raw data |
 | `play.sh` | Shortcut wrapper: refreshes the OIDC token automatically, runs via `uv` + `rich` |
 | `docs/threshold-tuning.mmd` / `.png` | Mind map: how to tune thresholds |
 | `docs/verbose-output.svg` | Sample `-v` output |
@@ -191,8 +195,6 @@ Gotcha: `choice.criteria` is an object `{option: description}`, while `score.cri
 - [ ] Add `resolve: catalog`: before asking the user, look the request up in a music catalog. This would settle "metallica one" (artist vs track), "pies descalzos" (album vs song) and "rescate - nada" (unknown artist).
 - [ ] Take energy for concrete tracks from the catalog, not from the request text.
 - [ ] Build the downstream LLM step: one prompt per route, and skip the LLM entirely for `control`.
-- [ ] Repeat this experiment with [Laya](https://dev.to/jamilxt/jev-vs-laya-the-same-ai-idea-one-closed-and-one-open), the open-source model that does the same job as Jev but runs locally (no API fees). Run the same 25-case golden set and compare routes, confidence calibration, thresholds, latency and cost.
-  - Laya: 421M-param encoder (ModernBERT-large; 322M multilingual variant), Apache 2.0, weights on Hugging Face. ~1 s/request on Apple Silicon, runs offline.
-  - Likely setup (per [jevals](https://github.com/openlayer-ai/jevals)): `pip install "jevals[laya]"` + `JEVALS_BACKEND=laya`. Install in an isolated `uv` env.
-  - Open questions: does it expose an HTTP `/systemone`-like endpoint, or is it library-only? (if library-only, write a small adapter in `call()`). Is the response shape identical (`noul`, `confidence`, `probabilities`)? How well does it handle the Spanish requests (try the multilingual variant)?
-  - Alternative: Kev (`python -m kev.serve --run jaredpalmer/kev-4b`, needs a 32 GB Mac, ~6 s/request). Too slow for a pre-classifier.
+- [x] Repeat this experiment with Laya → [BENCHMARK.md](BENCHMARK.md). Laya runs locally in ~5 min (`uv pip install "jevals[laya]"`); it takes the same question/answer shape as Jev.
+- [ ] Re-run the benchmark when the provider is not overloaded (Jev p95 was 12.9 s due to `529` retries).
+- [ ] Give Laya questions designed for it (fewer route options, shorter descriptions, split compound questions) and benchmark again.
