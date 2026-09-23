@@ -12,7 +12,20 @@ Jev is TypeSafe AI's "System One" evaluation model (`typesafe-ai/jev`), availabl
 
 ![verbose output](docs/verbose-output.svg)
 
-> **Benchmark:** Jev vs the open-source, local [Laya](https://huggingface.co/convaiinnovations/laya) on the same 25 labeled requests → [BENCHMARK.md](BENCHMARK.md). Jev: 25/25 routes. Laya: 12/25, but faster, free and offline.
+## Benchmark: Jev vs Laya
+
+Jev vs the open-source, local [Laya](https://huggingface.co/convaiinnovations/laya), on the same 25 labeled requests with the same 9 questions:
+
+| | Jev | Laya (English) | Laya (multilingual) |
+|---|---|---|---|
+| Route accuracy | **25/25** | 12/25 | 8/25 |
+| Correct **and** confident (≥ 0.6) | **23/25** | 7/25 | 3/25 |
+| Modifiers, precision / recall @ 0.8 | **100% / 100%** | 0% / 0% | 20% / 12% |
+| Latency p50 | 544 ms | 380 ms | **183 ms** |
+| Cost | ~$36 / 1M requests | **$0** (local) | **$0** (local) |
+| Deterministic | no (2 route flips in 3 runs) | **yes** | **yes** |
+
+Laya is faster, free, offline and deterministic, but for this task it is not a drop-in replacement. Methodology, per-request results and caveats: [BENCHMARK.md](BENCHMARK.md).
 
 ## How it works
 
