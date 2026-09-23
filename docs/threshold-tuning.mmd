@@ -1,0 +1,53 @@
+mindmap
+  root((Tuning Jev thresholds))
+    1 · Decision
+      What action does yes trigger?
+        is_queue → queue 3 things
+        ask_user → bother the user
+      Which error hurts more?
+        costly FP → high threshold
+        costly FN → low threshold
+      One threshold per question, never global
+    2 · Labeled cases
+      Golden set: the 25 REQUESTS
+      Positives and negatives by hand
+      Include trap cases
+        metallica one
+        yellow from cold play
+    3 · Measure, don't guess
+      List score per case and label
+      Find the gap
+        true positives ≥ 0.91
+        false positives ≤ 0.59
+        gap 0.6–0.9 → 0.8
+      No gap → the question is badly phrased
+        needs_clarification was noise
+    4 · Stability
+      Run it 3 times
+      Stable near 0.5 → real doubt
+        yellow: 0.51 · 0.56 · 0.52
+      Flips between runs → don't trust it
+        metallica: artist 0.46 → track 0.52
+    5 · Three zones
+      Clear yes → act
+      Clear no → ignore
+      Gray zone → fallback
+        catalog lookup
+        pass the doubt to the LLM
+        ask the user
+      Doubtful route voids its dependents
+        nada → energy very chill 0.70
+    6 · Which number to read
+      noul → the probability
+      choice → confidence and top1 vs top2 margin
+        metallica 0.34 vs 0.28 = tie
+      score → confidence, not the score
+        energy 0.27 → null
+    7 · Maintain
+      Re-run the golden set after every change
+      Adding questions shifts others
+        yellow lost has_artist
+      Anti-patterns
+        0.5 by default
+        tuning on a single example
+        ignoring confidence
