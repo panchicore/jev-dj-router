@@ -12,6 +12,58 @@ Jev is TypeSafe AI's "System One" evaluation model (`typesafe-ai/jev`), availabl
 
 ![verbose output](docs/verbose-output.svg)
 
+## How it works
+
+Jev acts as a cheap, fast pre-classifier. The LLM only runs when it is actually needed, and it receives a hint that tells it what kind of request it is dealing with.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant B as DJ Bot
+    participant J as Jev<br/>(typesafe-ai/jev)
+    participant H as Hint builder<br/>(thresholds)
+    participant C as Music catalog
+    participant L as LLM
+    participant P as Player
+
+    U->>B: /play metallica one
+    B->>J: state + 9 typed questions (1 call)
+    Note over J: ~500 ms · ~$0.000036<br/>classifies, does not extract
+    J-->>B: route probs · noul · score + confidence
+    B->>H: raw answers
+    Note over H: modifiers ≥ 0.8<br/>energy only if confidence ≥ 0.5<br/>ask_user if unclear or conf < 0.6
+    H-->>B: hint {route, alternatives, extract, modifiers, energy}
+
+    alt route = control / history (conf high)
+        B->>P: skip / pause / replay — no LLM
+    else route = out_of_scope
+        B-->>U: "I only play music 🎧"
+    else clear route (conf ≥ 0.6)
+        B->>L: request + hint
+        L->>L: extract entities guided by hint<br/>(artist, track, exclusions, queue…)
+        L->>C: search(query)
+        C-->>L: tracks + real energy
+        L->>P: play / enqueue
+        L-->>U: "Now playing: One — Metallica 🤘"
+    else gray zone (conf < 0.6, e.g. artist 0.30 vs track 0.34)
+        B->>C: resolve "metallica one" first
+        alt catalog has a clear match
+            C-->>B: track: One — Metallica
+            B->>L: request + hint + resolved match
+            L->>P: play
+            L-->>U: "Now playing: One — Metallica"
+        else no match / still ambiguous
+            B->>L: hint (route + alternatives only,<br/>drop extract/energy)
+            L-->>U: "The song 'One', or anything by Metallica?"
+        end
+    end
+```
+
+Source: [`docs/sequence.mmd`](docs/sequence.mmd).
+
+## Jev in one paragraph
+
 Jev is not a chat model. It does not generate text. You send it `state` (text) plus typed questions, and it returns probabilities:
 
 | Type | Returns | Used here for |
@@ -30,6 +82,7 @@ All questions are evaluated in parallel within one request.
 | `play.sh` | Shortcut wrapper: refreshes the OIDC token automatically, runs via `uv` + `rich` |
 | `docs/threshold-tuning.mmd` / `.png` | Mind map: how to tune thresholds |
 | `docs/verbose-output.svg` | Sample `-v` output |
+| `docs/sequence.mmd` / `.png` | Sequence diagram: Jev as a pre-classifier for the LLM |
 
 ## Usage
 
